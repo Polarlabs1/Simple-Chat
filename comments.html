@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+    <style>
+      body {
+        margin: 15px;
+        background: #151515;
+        color: #fff;
+        font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 17px;
+        line-height: 31px;
+      }
+      input,
+      textarea,
+      button {
+       display: block;
+       font-family: inherit;
+       background: #121212;
+       color: #fff;
+       border: 1px solid #fff;
+       font-size: 15px;
+       line-height: 20px;
+       padding: 10px;
+       outline: 0;
+      }
+      input,
+      textarea {
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <input type="text" id="name" placeholder="Input nickname">
+    <textarea id="message" placeholder="Input message"></textarea>
+    <button id="submit">Submit Message</button>
+    <div id="messages"></div>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.4/firebase-app.js";
+      import { getDatabase, set, ref, push, child, onChildAdded } from "https://www.gstatic.com/firebasejs/9.8.4/firebase-database.js";
+      const firebaseConfig = {
+        projectId: "chat-22aaa",
+      };
+      const app = initializeApp(firebaseConfig),
+        database = getDatabase(app),
+        submit = document.getElementById("submit"),
+        messageInput = document.getElementById("message"),
+        nameInput = document.getElementById("name"),
+        messages = document.getElementById("messages");
+      submit.addEventListener("click", e => {
+        const message = messageInput.value,
+          name = nameInput.value || "Anonymous",
+          id = push(child(ref(database), "messages")).key;
+        set(ref(database, `messages/${id}`), {
+          name: name,
+          message: message
+        });
+        messageInput.value = nameInput.value = "";
+      });
+      
+      const newMsg = ref(database, "messages");
+      onChildAdded(newMsg, data => {
+        messages.innerHTML += `<div><h3>${data.val().name}</h3><p>${data.val().message}</p></div>`;
+      });
+    </script>
+  </body>
+</html>
