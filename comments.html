@@ -1,10 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" dir="ltr">
   <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <!-- sets consistent DPI -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Application</title>
+    <!-- simple styles, enough to make it readable -->
     <style>
       body {
         margin: 15px;
@@ -29,6 +30,7 @@
       }
       input,
       textarea {
+        /* make them bigger since otherwise they might look weird */
         width: 100%;
         box-sizing: border-box;
         margin-bottom: 15px;
@@ -36,35 +38,52 @@
     </style>
   </head>
   <body>
+    <!-- bare minimum DOM to show a chat app. it is up to you to add things like <form> and other semantics -->
     <input type="text" id="name" placeholder="Input nickname">
     <textarea id="message" placeholder="Input message"></textarea>
     <button id="submit">Submit Message</button>
     <div id="messages"></div>
+    
+    <!-- must use module to our import code -->
     <script type="module">
+      // we are importing references from each of these firebase links. this part is known as object destructuring
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.4/firebase-app.js";
       import { getDatabase, set, ref, push, child, onChildAdded } from "https://www.gstatic.com/firebasejs/9.8.4/firebase-database.js";
+      
+      // tell Google where our project is
       const firebaseConfig = {
         projectId: "chat-22aaa",
       };
+      // set up app and references to the DOM elements
       const app = initializeApp(firebaseConfig),
         database = getDatabase(app),
         submit = document.getElementById("submit"),
         messageInput = document.getElementById("message"),
         nameInput = document.getElementById("name"),
         messages = document.getElementById("messages");
+      // whenever the submit button is clicked
       submit.addEventListener("click", e => {
+        // store the message and name
+        // if no name, the user's name is "Anonymous"
+        // then push a new child into the "messages" array. retrive a key from here, and store it in "id"
         const message = messageInput.value,
           name = nameInput.value || "Anonymous",
           id = push(child(ref(database), "messages")).key;
+        // now we can set the properties at that key and pass the data in
         set(ref(database, `messages/${id}`), {
           name: name,
           message: message
         });
+        // clear the values for convenience of our user
+        // alternatively, you can keep name input the same
         messageInput.value = nameInput.value = "";
       });
-      
+      // store reference to messages in database
       const newMsg = ref(database, "messages");
+      // add a Firebase-specific listener, when a new item is added to "messages"
       onChildAdded(newMsg, data => {
+        // then add the messages
+        // basic DOM manipulation with string literals
         messages.innerHTML += `<div><h3>${data.val().name}</h3><p>${data.val().message}</p></div>`;
       });
     </script>
